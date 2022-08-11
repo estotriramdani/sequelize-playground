@@ -1,6 +1,9 @@
 import Book from './models/Book';
 import express from 'express';
 import Author from './models/Author';
+import relation from './models/relation';
+
+relation();
 
 const app = express();
 
@@ -64,6 +67,23 @@ app.post('/books', async (req, res) => {
     const books = await Book.create({
       title: req.body.title,
       author_id: req.body.author_id,
+    });
+    res.status(201).json({
+      message: 'Welcome to the API',
+      data: books,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: 'Something went wrong',
+      data: error,
+    });
+  }
+});
+
+app.get('/books', async (req, res) => {
+  try {
+    const books = await Book.findAll({
+      include: [Author],
     });
     res.status(201).json({
       message: 'Welcome to the API',
