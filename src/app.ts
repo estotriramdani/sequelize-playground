@@ -1,3 +1,7 @@
+import * as dotenv from 'dotenv'
+
+dotenv.config();
+
 import Book from './models/Book';
 import express from 'express';
 import Author from './models/Author';
