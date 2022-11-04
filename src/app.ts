@@ -115,23 +115,26 @@ app.post('/upload', async (req, res) => {
     secretAccessKey: process.env.AWS_SECRET_KEY,
   });
 
-  s3.upload(
-    {
-      Bucket: process.env.S3_BUCKET_NAME || '',
-      Key: slugify(
-        new Date().getTime().toString() + '_' + file?.name?.toLowerCase()
-      ),
-      Body: file.data,
-    },
-    (error, data) => {
-      if (error) {
-        return res.json({
-          message: 'Error uploading data',
-        });
+  await s3
+    .upload(
+      {
+        Bucket: process.env.S3_BUCKET_NAME || '',
+        Key: slugify(
+          new Date().getTime().toString() + '_' + file?.name?.toLowerCase()
+        ),
+        Body: file.data,
+      },
+      (error, data) => {
+        if (error) {
+          return res.json({
+            message: 'Error uploading data',
+          });
+        }
+        return res.json(data);
       }
-      return res.json(data);
-    }
-  );
+    )
+    .promise();
+  res.json({ message: 'success' });
 });
 
 app.listen(process.env.PORT || 3000, () => {
