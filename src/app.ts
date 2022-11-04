@@ -1,12 +1,16 @@
-import * as dotenv from 'dotenv'
-import cors from 'cors'
+import * as dotenv from 'dotenv';
+import cors from 'cors';
 
 dotenv.config();
+
+import fileUpload from 'express-fileupload';
+import AWS from 'aws-sdk';
 
 import Book from './models/Book';
 import express from 'express';
 import Author from './models/Author';
 import relation from './models/relation';
+import slugify from 'slugify';
 
 relation();
 
@@ -14,6 +18,7 @@ const app = express();
 
 app.use(express.json());
 app.use(cors());
+app.use(fileUpload());
 
 app.get('/', async (req, res) => {
   try {
@@ -101,6 +106,32 @@ app.get('/books', async (req, res) => {
       data: error,
     });
   }
+});
+
+app.post('/upload', async (req, res) => {
+  const file = req.files?.file as any;
+  const s3 = new AWS.S3({
+    accessKeyId: process.env.AWS_ACCESS_KEY,
+    secretAccessKey: process.env.AWS_SECRET_KEY,
+  });
+
+  s3.upload(
+    {
+      Bucket: process.env.S3_BUCKET_NAME || '',
+      Key: slugify(
+        new Date().getTime().toString() + '_' + file?.name?.toLowerCase()
+      ),
+      Body: file.data,
+    },
+    (error, data) => {
+      if (error) {
+        return res.json({
+          message: 'Error uploading data',
+        });
+      }
+      return res.json(data);
+    }
+  );
 });
 
 app.listen(process.env.PORT || 3000, () => {
